@@ -230,8 +230,78 @@ class USPSTest < Test::Unit::TestCase
   end
 
   def test_valid_credentials_empty_login
-    usps = USPS.new(:test => true)
-    assertEqual false, usps.valid_credentials?
+    response = nil
+    response = begin
+      usps = USPS.new(:test => true)
+      usps.valid_credentials?
+    rescue ArgumentError => e
+      assert_equal "Missing required parameter: login", e.message
+    end
+  end
+
+  def test_validation_invalid_state
+    response = nil
+    response = begin
+      @carrier.validate_address(@locations[:ottawa], :test => true)
+    rescue ResponseError => e
+      assert_match "Invalid State Code.", e.message
+    end
+  end
+
+  def test_validation_more_info_needed
+    response = nil
+    assert_nothing_raised do
+      response = @carrier.validate_address(@locations[:beverly_hills], :test => true)
+    end
+
+    assert_match "Default address", response.message
+
+    assert_equal "", response.address.address1
+    assert_equal "455 N REXFORD DR # 3", response.address.address2
+    assert_equal "BEVERLY HILLS", response.address.city
+    assert_equal "CA", response.address.state
+    assert_equal "90210-4817", response.address.zip
+
+    assert !response.address_match?
+  end
+
+  def test_validation_address_not_found
+    response = nil
+    response = begin
+      @carrier.validate_address(@locations[:fake_google_as_commercial], :test => true)
+    rescue ResponseError => e
+      assert_match "Address Not Found", e.message
+    end
+  end
+
+  def test_validation
+    response = nil
+    assert_nothing_raised do
+      response = @carrier.validate_address(@locations[:real_google_as_commercial], :test => true)
+    end
+
+    assert_equal "", response.address.address1
+    assert_equal "1600 AMPHITHEATRE PKWY", response.address.address2
+    assert_equal "MOUNTAIN VIEW", response.address.city
+    assert_equal "CA", response.address.state
+    assert_equal "94043-1351", response.address.zip
+
+    assert response.address_match?
+  end
+
+  def test_validation_us_territory
+    response = nil
+    assert_nothing_raised do 
+     response = @carrier.validate_address(@locations[:puerto_rico], :test => true)
+    end
+
+    assert_equal "", response.address.address1
+    assert_equal "1 URB NUEVA", response.address.address2
+    assert_equal "BARCELONETA", response.address.city
+    assert_equal "PR", response.address.state
+    assert_equal "00617-2518", response.address.zip
+
+    assert response.address_match?
   end
 
   # Uncomment and switch out SPECIAL_COUNTRIES with some other batch to see which

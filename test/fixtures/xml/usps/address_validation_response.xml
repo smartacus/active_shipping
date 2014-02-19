@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AddressValidateResponse>
+  <Address ID="0">
+    <Address1>RM 2601</Address1>
+    <Address2>780 3RD AVE</Address2>
+    <City>NEW YORK</City>
+    <State>NY</State>
+    <Zip5>10017</Zip5>
+    <Zip4>2177</Zip4>
+  </Address>
+</AddressValidateResponse>

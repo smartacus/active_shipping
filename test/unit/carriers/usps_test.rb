@@ -408,6 +408,17 @@ class USPSTest < Test::Unit::TestCase
     assert_equal 12, details.zoneless_time.mday
   end
 
+  def test_address_validation
+    @carrier.expects(:commit).returns(xml_fixture('usps/address_validation_response'))
+    response = @carrier.validate_address(@locations[:new_york])
+    assert_equal "RM 2601", response.address.address1
+    assert_equal "780 3RD AVE", response.address.address2
+    assert_equal "NEW YORK", response.address.city
+    assert_equal "NY", response.address.state
+    assert_equal "10017-2177", response.address.zip
+    assert response.address_match?
+  end
+
   private
 
   def build_service_node(options = {})
